@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\Gpu">
+      <UniqueIdentifier>{c75c5345-c207-48f1-9b6b-4e015d4acc1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Physics">
+      <UniqueIdentifier>{c05e0bce-76de-4f9f-a578-0753107db6da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Scene">
+      <UniqueIdentifier>{9d357814-0bf6-44b6-ace2-e59f2ac8644b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Gpu\Managers">
+      <UniqueIdentifier>{1b3ca2cb-1a63-4dfe-8c66-98c9befc8440}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Gpu\Abstractions">
+      <UniqueIdentifier>{39d29d5b-c2f5-4393-9d75-cb6709597e2e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="_main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Engine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuManager.h">
+      <Filter>Header Files\Gpu</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsManager.h">
+      <Filter>Header Files\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneManager.h">
+      <Filter>Header Files\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuDeviceManager.h">
+      <Filter>Header Files\Gpu\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuMemoryManager.h">
+      <Filter>Header Files\Gpu\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuSwapchainManager.h">
+      <Filter>Header Files\Gpu\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuShaderManager.h">
+      <Filter>Header Files\Gpu\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuPipelineManager.h">
+      <Filter>Header Files\Gpu\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuSamplerManager.h">
+      <Filter>Header Files\Gpu\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuRenderManager.h">
+      <Filter>Header Files\Gpu\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuInstanceManager.h">
+      <Filter>Header Files\Gpu\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="Swapchain.h">
+      <Filter>Header Files\Gpu\Abstractions</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicalDevice.h">
+      <Filter>Header Files\Gpu\Abstractions</Filter>
+    </ClInclude>
+    <ClInclude Include="Device.h">
+      <Filter>Header Files\Gpu\Abstractions</Filter>
+    </ClInclude>
+    <ClInclude Include="TransferManager.h">
+      <Filter>Header Files\Gpu\Abstractions</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuBuffer.h">
+      <Filter>Header Files\Gpu\Abstractions</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuImage.h">
+      <Filter>Header Files\Gpu\Abstractions</Filter>
+    </ClInclude>
+    <ClInclude Include="GpuDescriptorManager.h">
+      <Filter>Header Files\Gpu\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Header Files\Scene</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Data\Shaders\shader.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="..\..\Data\Shaders\shader.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>
