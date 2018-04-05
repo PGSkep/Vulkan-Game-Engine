@@ -32,7 +32,7 @@ public:
 	void Init()
 	{
 		Camera camera;
-		camera.position = { 0.0f, 0.0f, 10.0f };
+		camera.position = { 0.0f, 0.0f, -10.0f };
 		camera.rotation = { 0.0f, 0.0f, 0.0f };
 		camera.fov = 45.0f;
 		camera.aspect = 800.0f / 600.0f;
@@ -75,8 +75,36 @@ public:
 			{ gpuInstanceManager.swapchain.surface });
 
 		/// MEMORY
+		size_t instanceCount = 9;
+
+		Vertex::STRUCTURE	modelColorLightStruct = Vertex::STRUCTURE::GetStructure(Vertex::VERTEXTYPE::POS3_COLOR3_ROT3_SCALE3_LIGHTCOUNT);
+		size_t				modelColorLightSize = Vertex::STRUCTURE::GetStride(modelColorLightStruct) * instanceCount;
+		void*				modelColorLightData = new uint8_t[modelColorLightSize];
+
+		for (size_t x = 0; x != 3; ++x)
+		{
+			for (size_t y = 0; y != 3; ++y)
+			{
+				size_t index = y + (x * 3);
+
+				void* indexAddress = Vertex::STRUCTURE::GetIndexAddress(modelColorLightData, modelColorLightStruct, index);
+
+				void* indexPos3			= Vertex::STRUCTURE::GetAttributeAddress(indexAddress, modelColorLightStruct, Vertex::ATTRIBUTE::POS3);
+				void* indexColor3		= Vertex::STRUCTURE::GetAttributeAddress(indexAddress, modelColorLightStruct, Vertex::ATTRIBUTE::COLOR3);
+				void* indexRot3			= Vertex::STRUCTURE::GetAttributeAddress(indexAddress, modelColorLightStruct, Vertex::ATTRIBUTE::ROT3);
+				void* indexScale3		= Vertex::STRUCTURE::GetAttributeAddress(indexAddress, modelColorLightStruct, Vertex::ATTRIBUTE::SCALE3);
+				void* indexLightCount	= Vertex::STRUCTURE::GetAttributeAddress(indexAddress, modelColorLightStruct, Vertex::ATTRIBUTE::LIGHTCOUNT);
+
+				*(Math3D::Vec3*)indexPos3	= { -2.0f + (float)x * 2.0f, -2.0f + (float)y * 2.0f, 0.0f };
+				*(Math3D::Vec3*)indexColor3	= { (float)index / 9.0f, (float)index / 9.0f, (float)index / 9.0f };
+				*(Math3D::Vec3*)indexRot3	= { 0.3f, 0.0f, 0.0f };
+				*(Math3D::Vec3*)indexScale3	= { 1.0f, 1.0f, 1.0f };
+				*(uint16_t*)indexLightCount	= { 0 };
+			}
+		}
+
 		VkDeviceSize bufferTransferSize = 144144;
-		VkDeviceSize vertexBufferSize = 144144 + 880;
+		VkDeviceSize vertexBufferSize = 144144 + 880 + modelColorLightSize;
 		VkDeviceSize indexBufferSize = (15816 + 36) * sizeof(uint32_t);
 		VkDeviceSize uniformBufferSize = sizeof(viewProjection);
 
@@ -88,8 +116,14 @@ public:
 			indexBufferSize,
 			uniformBufferSize);
 
-		gpuMemoryManager.AddMesh(gpuDeviceManager.device.handle, "Cube", "../../Data/Models/TestCube.fbx", Vertex::DATA::POS3_UV_NORMAL_COLOR3);
-		gpuMemoryManager.AddMesh(gpuDeviceManager.device.handle, "Bunny_Warrior", "../../Data/Models/Lagomorph Walk Start & Cycle Stationary V1.fbx", Vertex::DATA::POS3_UV_NORMAL_COLOR3);
+		gpuMemoryManager.AddVertex(gpuDeviceManager.device.handle, "staticMeshInstanceData", modelColorLightData, modelColorLightSize, modelColorLightStruct);
+		delete[] modelColorLightData;
+
+		gpuMemoryManager.AddMesh(gpuDeviceManager.device.handle, "CubePos", "../../Data/Models/TestCube.fbx", Vertex::VERTEXTYPE::POS3, true, false);
+		gpuMemoryManager.AddMesh(gpuDeviceManager.device.handle, "CubeOth", "../../Data/Models/TestCube.fbx", Vertex::VERTEXTYPE::UV_NORMAL_COLOR3, true, false);
+		gpuMemoryManager.AddMesh(gpuDeviceManager.device.handle, "CubeInd", "../../Data/Models/TestCube.fbx", Vertex::VERTEXTYPE::POS3, false, true);
+
+		gpuMemoryManager.AddMesh(gpuDeviceManager.device.handle, "BunnyWarriorPos", "../../Data/Models/Lagomorph Walk Start & Cycle Stationary V1.fbx", Vertex::VERTEXTYPE::POS3_UV_NORMAL_COLOR3, true, true);
 
 		gpuMemoryManager.AddUniform(gpuDeviceManager.device.handle, "viewProjection", viewProjection, sizeof(viewProjection));
 
@@ -125,15 +159,26 @@ public:
 			VkU::GetVkPushConstantRange(VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(float) * 4 + sizeof(uint32_t)),
 		});
 
-		gpuPipelineManager.AddInputBindings("Pos3UvNormalColor3_Binding0_VertexRate", { VkU::GetVertexInputBindingDescriptions({ VkU::BindingDescriptionInfo::Get(0, Vertex::DATA::POS3_UV_NORMAL_COLOR3, VK_VERTEX_INPUT_RATE_VERTEX) }) });
-		gpuPipelineManager.AddInputAttributes("Pos3UvNormalColor3", { VkU::GetVertexInputAttributeDescriptions({ Vertex::DATA::POS3_UV_NORMAL_COLOR3 }) });
+		gpuPipelineManager.AddInputBindings("Pos3_UvNormalColor3", { VkU::GetVertexInputBindingDescriptions(
+		{
+			VkU::BindingDescriptionInfo::Get(0, Vertex::VERTEXTYPE::POS3_COLOR3_ROT3_SCALE3_LIGHTCOUNT, VK_VERTEX_INPUT_RATE_INSTANCE),
+			VkU::BindingDescriptionInfo::Get(1, Vertex::VERTEXTYPE::POS3, VK_VERTEX_INPUT_RATE_VERTEX),
+			VkU::BindingDescriptionInfo::Get(2, Vertex::VERTEXTYPE::UV_NORMAL_COLOR3, VK_VERTEX_INPUT_RATE_VERTEX),
+		}) });
+		gpuPipelineManager.AddInputAttributes("Pos3_UvNormalColor3", { VkU::GetVertexInputAttributeDescriptions(
+		{
+			Vertex::VERTEXTYPE::POS3_COLOR3_ROT3_SCALE3_LIGHTCOUNT,
+			Vertex::VERTEXTYPE::POS3,
+			Vertex::VERTEXTYPE::UV_NORMAL_COLOR3,
+		}) });
+
 		gpuPipelineManager.AddViewports("1ClientSpace", gpuSwapchainManager.swapchain->viewports);
 		gpuPipelineManager.AddScissors("1ClientSpace", gpuSwapchainManager.swapchain->scissors);
 		gpuPipelineManager.AddColorBlendAttachments("AdditiveBlend", { VkU::GetVkPipelineColorBlendAttachmentState(VK_FALSE, VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ZERO, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ZERO, VK_BLEND_FACTOR_ZERO, VK_BLEND_OP_ADD, VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT) });
 		gpuPipelineManager.AddDynamics("Viewport_Scissor", { { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, } });
 
 		gpuPipelineManager.AddShaderStage("Pos3UvNormalColor3_Basic", { VkU::GetVkPipelineShaderStageCreateInfo(VK_SHADER_STAGE_VERTEX_BIT, gpuShaderManager.GetShaderModule("vert")), VkU::GetVkPipelineShaderStageCreateInfo(VK_SHADER_STAGE_FRAGMENT_BIT, gpuShaderManager.GetShaderModule("frag")), });
-		gpuPipelineManager.AddVertexInputState("Pos3UvNormalColor3", VkU::GetVkPipelineVertexInputStateCreateInfo(gpuPipelineManager.GetInputBindingsPtr("Pos3UvNormalColor3_Binding0_VertexRate"), gpuPipelineManager.GetInputAttributesPtr("Pos3UvNormalColor3")));
+		gpuPipelineManager.AddVertexInputState("Pos3UvNormalColor3", VkU::GetVkPipelineVertexInputStateCreateInfo(gpuPipelineManager.GetInputBindingsPtr("Pos3_UvNormalColor3"), gpuPipelineManager.GetInputAttributesPtr("Pos3_UvNormalColor3")));
 		gpuPipelineManager.AddInputAssemblyState("TriangleList", VkU::GetVkPipelineInputAssemblyStateCreateInfo(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_FALSE));
 		gpuPipelineManager.AddTessallationState("0", VkU::GetVkPipelineTessellationStateCreateInfo(0));
 		gpuPipelineManager.AddViewportState("1ClientSpace", VkU::GetVkPipelineViewportStateCreateInfo(*gpuPipelineManager.GetViewportsPtr("1ClientSpace"), *gpuPipelineManager.GetScissorsPtr("1ClientSpace")));
@@ -156,12 +201,14 @@ public:
 		addStaticMeshInfo.staticMeshPipelineInfo.pipelineLayout = "Vertex_Uniform1_PushConstant_0~16";
 		addStaticMeshInfo.staticMeshPipelineInfo.descriptorSet0 = "viewProjection";
 		addStaticMeshInfo.staticMeshName = "Cube";
-		addStaticMeshInfo.staticMeshInfo.vertexInstance = "";
-		addStaticMeshInfo.staticMeshInfo.vertexPosition = "";
-		addStaticMeshInfo.staticMeshInfo.vertexOther = "Cube";
-		addStaticMeshInfo.staticMeshInfo.indice = "Cube";
+
+		addStaticMeshInfo.staticMeshInfo.vertexInstance = "staticMeshInstanceData";
+		addStaticMeshInfo.staticMeshInfo.vertexPosition = "CubePos";
+		addStaticMeshInfo.staticMeshInfo.vertexOther = "CubeOth";
+		addStaticMeshInfo.staticMeshInfo.indice = "CubeInd";
 		addStaticMeshInfo.staticMeshInfo.descriptorSet1 = "";
-		addStaticMeshInfo.staticMeshInfo.instanceCount = 1;
+
+		addStaticMeshInfo.staticMeshInfo.instanceCount = 9;
 		gpuRenderManager.AddStaticMeshes(addStaticMeshInfo);
 	}
 	void Run()

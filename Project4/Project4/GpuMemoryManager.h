@@ -17,7 +17,7 @@ private:
 	GpuBuffer						vertexBuffer;
 	struct VertexBufferMapInfo
 	{
-		Vertex::DATA::type	type;
+		Vertex::STRUCTURE	structure;
 	};
 	MemoryMap<VertexBufferMapInfo>	vertexMemoryMap;
 
@@ -119,10 +119,19 @@ public:
 	}
 
 	// Memory
-	void AddVertex(VkDevice _device, const char* _name, void* _data, size_t _dataSize, Vertex::DATA::type _vertexDatatype)
+	void AddVertex(VkDevice _device, const char* _name, void* _data, size_t _dataSize, Vertex::VERTEXTYPE::vertextype _vertexDatatype)
 	{
 		VertexBufferMapInfo vertexBufferMapInfo;
-		vertexBufferMapInfo.type = _vertexDatatype;
+		vertexBufferMapInfo.structure = Vertex::STRUCTURE::GetStructure(_vertexDatatype);
+
+		VkDeviceSize offset = vertexMemoryMap.Allocate(_name, _dataSize, vertexBufferMapInfo);
+
+		transferManager.TransferBuffer(_device, _data, _dataSize, vertexBuffer.handle, offset);
+	}
+	void AddVertex(VkDevice _device, const char* _name, void* _data, size_t _dataSize, Vertex::STRUCTURE _structure)
+	{
+		VertexBufferMapInfo vertexBufferMapInfo;
+		vertexBufferMapInfo.structure = _structure;
 
 		VkDeviceSize offset = vertexMemoryMap.Allocate(_name, _dataSize, vertexBufferMapInfo);
 
@@ -138,19 +147,26 @@ public:
 
 		transferManager.TransferBuffer(_device, _data, _dataSize, indexBuffer.handle, offset);
 	}
-	void AddMesh(VkDevice _device, const char* _name, const char* _filename, Vertex::DATA::type _vertexDatatype)
+
+	void AddMesh(VkDevice _device, const char* _name, const char* _filename, Vertex::VERTEXTYPE::vertextype _vertexDatatype, bool _includeVertex, bool _includeIndex)
 	{
 		Loader::Data3D data3D;
-		Loader::LoadData3D2(_filename, data3D, _vertexDatatype);
+		Loader::LoadData3D(_filename, data3D, _vertexDatatype);
+	
+		if(_includeVertex)
+			AddVertex(_device, _name, data3D.meshes[0].vertexData, data3D.meshes[0].vertexSize, data3D.meshes[0].vertexType);
 
-		AddVertex(_device, _name, data3D.meshes[0].vertexData, data3D.meshes[0].vertexSize, data3D.meshes[0].vertexType);
-		AddIndex(_device, _name, data3D.meshes[0].indexData, data3D.meshes[0].indexCount * Vertex::INDEX::GetSize(data3D.meshes[0].indexType), data3D.meshes[0].indexCount, data3D.meshes[0].indexType);
-
+		if(_includeIndex)
+			AddIndex(_device, _name, data3D.meshes[0].indexData, data3D.meshes[0].indexCount * Vertex::INDEX::GetSize(data3D.meshes[0].indexType), data3D.meshes[0].indexCount, data3D.meshes[0].indexType);
+	
 		Loader::UnloadData3D(data3D);
 	}
+
 	void AddUniform(VkDevice _device, const char* _name, void* _data, size_t _dataSize)
 	{
 		VkDeviceSize offset = uniformMemoryMap.Allocate(_name, _dataSize, {});
+		if (offset == -1)
+			return;
 
 		transferManager.TransferBuffer(_device, _data, _dataSize, uniformBuffer.handle, offset);
 

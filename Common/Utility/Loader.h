@@ -14,11 +14,6 @@
 
 #include "Math3D.h"
 
-//#include <map>
-//#include <array>
-
-//#include <string.h>
-
 class Loader
 {
 public:
@@ -60,7 +55,7 @@ public:
 		{
 			std::string					name;
 
-			Vertex::DATA::type	vertexType;
+			Vertex::VERTEXTYPE::vertextype	vertexType;
 			uint32_t			vertexSize;
 			void*				vertexData;
 
@@ -71,19 +66,24 @@ public:
 		std::vector<Mesh>	meshes;
 
 		// armature
-		struct Bone
-		{
-			std::string			name;
-			Math3D::Mat4		mat;
-			Math3D::Mat4		offset;
-
-			//Bone*				parent;
-			std::vector<Bone>	childs;
-		};
-		std::vector<Bone>	armatures;
+		//struct Bone
+		//{
+		//	std::string			name;
+		//	Math3D::Mat4		mat;
+		//	Math3D::Mat4		offset;
+		//
+		//	//Bone*				parent;
+		//	std::vector<Bone>	childs;
+		//};
+		//std::vector<Bone>	armatures;
 	};
-	static void LoadData3D2(const char* _filename, Data3D& _data3D, Vertex::DATA::type _vertexType)
+	static void LoadData3D(const char* _filename, Data3D& _data3D, Vertex::VERTEXTYPE::vertextype _vertexType)
 	{
+		struct UV_NORMAL_COLOR3
+		{
+			float u, v, nx, ny, nz, r, g, b;
+		} pointless = {};
+
 		const aiScene* scene;
 		Assimp::Importer Importer;
 		static const int assimpFlags = aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals | aiProcess_LimitBoneWeights | aiProcess_ImproveCacheLocality | aiProcess_SortByPType | aiProcess_FindInvalidData;
@@ -100,19 +100,19 @@ public:
 			_data3D.meshes[iMesh].vertexType = _vertexType;
 
 			// Vertex size
-			_data3D.meshes[iMesh].vertexSize = (uint32_t)Vertex::GetDatatypeStride(_data3D.meshes[iMesh].vertexType) * scene->mMeshes[iMesh]->mNumVertices;
+			_data3D.meshes[iMesh].vertexSize = (uint32_t)Vertex::VERTEXTYPE::GetStride(_data3D.meshes[iMesh].vertexType) * scene->mMeshes[iMesh]->mNumVertices;
 
 			// Vertex Data
 			_data3D.meshes[iMesh].vertexData = Vertex::CreateVertexBuffer(_data3D.meshes[iMesh].vertexType, scene->mMeshes[iMesh]->mNumVertices);// new uint8_t[_data3D.meshes[iMesh].vertexSize * scene->mMeshes[iMesh]->mNumVertices];
 
-																																				 // Fill Vertex Data
+			// Fill Vertex Data
 			for (unsigned int iVert = 0; iVert != scene->mMeshes[iMesh]->mNumVertices; ++iVert)
 			{
-				size_t vertOffset = Vertex::GetDatatypeStride(_data3D.meshes[iMesh].vertexType) * iVert;
+				size_t vertOffset = Vertex::VERTEXTYPE::GetStride(_data3D.meshes[iMesh].vertexType) * iVert;
 
 				// POS1
-				if (((_vertexType & Vertex::DATA::POS1) == Vertex::DATA::POS1) &&
-					!((_vertexType & Vertex::DATA::POS2) == Vertex::DATA::POS2))
+				if (((_vertexType & Vertex::VERTEXTYPE::POS1) == Vertex::VERTEXTYPE::POS1) &&
+					!((_vertexType & Vertex::VERTEXTYPE::POS2) == Vertex::VERTEXTYPE::POS2))
 				{
 					if (scene->mMeshes[iMesh]->HasPositions() == true)
 						memcpy((void*)((size_t)_data3D.meshes[iMesh].vertexData + vertOffset), &scene->mMeshes[iMesh]->mVertices[iVert].x, sizeof(float) * 1);
@@ -122,8 +122,8 @@ public:
 					vertOffset += sizeof(float) * 1;
 				}
 				// POS2
-				else if (!((_vertexType & Vertex::DATA::POS1) == Vertex::DATA::POS1) &&
-					((_vertexType & Vertex::DATA::POS2) == Vertex::DATA::POS2))
+				else if (!((_vertexType & Vertex::VERTEXTYPE::POS1) == Vertex::VERTEXTYPE::POS1) &&
+					((_vertexType & Vertex::VERTEXTYPE::POS2) == Vertex::VERTEXTYPE::POS2))
 				{
 					if (scene->mMeshes[iMesh]->HasPositions() == true)
 						memcpy((void*)((size_t)_data3D.meshes[iMesh].vertexData + vertOffset), &scene->mMeshes[iMesh]->mVertices[iVert].x, sizeof(float) * 2);
@@ -133,7 +133,7 @@ public:
 					vertOffset += sizeof(float) * 2;
 				}
 				// POS3
-				else if ((_vertexType & Vertex::DATA::POS3) == Vertex::DATA::POS3)
+				else if ((_vertexType & Vertex::VERTEXTYPE::POS3) == Vertex::VERTEXTYPE::POS3)
 				{
 					if (scene->mMeshes[iMesh]->HasPositions() == true)
 						memcpy((void*)((size_t)_data3D.meshes[iMesh].vertexData + vertOffset), &scene->mMeshes[iMesh]->mVertices[iVert].x, sizeof(float) * 3);
@@ -143,7 +143,7 @@ public:
 					vertOffset += sizeof(float) * 3;
 				}
 				// UV
-				if ((_vertexType & Vertex::DATA::UV) == Vertex::DATA::UV)
+				if ((_vertexType & Vertex::VERTEXTYPE::UV) == Vertex::VERTEXTYPE::UV)
 				{
 					if (scene->mMeshes[iMesh]->HasTextureCoords(0) == true)
 						memcpy((void*)((size_t)_data3D.meshes[iMesh].vertexData + vertOffset), &scene->mMeshes[iMesh]->mTextureCoords[0][iVert].x, sizeof(float) * 2);
@@ -153,7 +153,7 @@ public:
 					vertOffset += sizeof(float) * 2;
 				}
 				// NORMAL
-				if ((_vertexType & Vertex::DATA::NORMAL) == Vertex::DATA::NORMAL)
+				if ((_vertexType & Vertex::VERTEXTYPE::NORMAL) == Vertex::VERTEXTYPE::NORMAL)
 				{
 					if (scene->mMeshes[iMesh]->HasNormals() == true)
 						memcpy((void*)((size_t)_data3D.meshes[iMesh].vertexData + vertOffset), &scene->mMeshes[iMesh]->mNormals[iVert].x, sizeof(float) * 3);
@@ -163,7 +163,7 @@ public:
 					vertOffset += sizeof(float) * 3;
 				}
 				// TANGENT
-				if ((_vertexType & Vertex::DATA::TANGENT) == Vertex::DATA::TANGENT)
+				if ((_vertexType & Vertex::VERTEXTYPE::TANGENT) == Vertex::VERTEXTYPE::TANGENT)
 				{
 					if (scene->mMeshes[iMesh]->HasTangentsAndBitangents() == true)
 						memcpy((void*)((size_t)_data3D.meshes[iMesh].vertexData + vertOffset), &scene->mMeshes[iMesh]->mTangents[iVert].x, sizeof(float) * 3);
@@ -173,7 +173,7 @@ public:
 					vertOffset += sizeof(float) * 3;
 				}
 				// BITANGENT
-				if ((_vertexType & Vertex::DATA::BITANGENT) == Vertex::DATA::BITANGENT)
+				if ((_vertexType & Vertex::VERTEXTYPE::BITANGENT) == Vertex::VERTEXTYPE::BITANGENT)
 				{
 					if (scene->mMeshes[iMesh]->HasTangentsAndBitangents() == true)
 						memcpy((void*)((size_t)_data3D.meshes[iMesh].vertexData + vertOffset), &scene->mMeshes[iMesh]->mBitangents[iVert].x, sizeof(float) * 3);
@@ -182,41 +182,47 @@ public:
 
 					vertOffset += sizeof(float) * 3;
 				}
-				// BONE32
-				if (((_vertexType & Vertex::DATA::BONE16_1) == Vertex::DATA::BONE16_1) ||
-					((_vertexType & Vertex::DATA::BONE16_2) == Vertex::DATA::BONE16_2) ||
-					((_vertexType & Vertex::DATA::BONE16_4) == Vertex::DATA::BONE16_4))
-				{
-					uint8_t boneCount = 0;
-					if ((_vertexType & Vertex::DATA::BONE16_1) == Vertex::DATA::BONE16_1)
-						boneCount += 1;
-					if ((_vertexType & Vertex::DATA::BONE16_2) == Vertex::DATA::BONE16_2)
-						boneCount += 2;
-					if ((_vertexType & Vertex::DATA::BONE16_4) == Vertex::DATA::BONE16_4)
-						boneCount += 4;
-
-					memset((void*)((size_t)_data3D.meshes[iMesh].vertexData + vertOffset), 0, (sizeof(float) + sizeof(uint16_t)) * boneCount);
-					vertOffset += (sizeof(float) + sizeof(uint16_t)) * boneCount;
-				}
 				// COLOR
-				if (((_vertexType & Vertex::DATA::COLOR1) == Vertex::DATA::COLOR1) ||
-					((_vertexType & Vertex::DATA::COLOR2) == Vertex::DATA::COLOR2) ||
-					((_vertexType & Vertex::DATA::COLOR4) == Vertex::DATA::COLOR4))
+				if (((_vertexType & Vertex::VERTEXTYPE::COLOR1) == Vertex::VERTEXTYPE::COLOR1) ||
+					((_vertexType & Vertex::VERTEXTYPE::COLOR2) == Vertex::VERTEXTYPE::COLOR2) ||
+					((_vertexType & Vertex::VERTEXTYPE::COLOR3) == Vertex::VERTEXTYPE::COLOR3) ||
+					((_vertexType & Vertex::VERTEXTYPE::COLOR4) == Vertex::VERTEXTYPE::COLOR4))
 				{
 					uint8_t colorCount = 0;
-					if ((_vertexType & Vertex::DATA::COLOR1) == Vertex::DATA::COLOR1)
+					if ((_vertexType & Vertex::VERTEXTYPE::COLOR1) == Vertex::VERTEXTYPE::COLOR1)
 						colorCount += 1;
-					if ((_vertexType & Vertex::DATA::COLOR2) == Vertex::DATA::COLOR2)
+					if ((_vertexType & Vertex::VERTEXTYPE::COLOR2) == Vertex::VERTEXTYPE::COLOR2)
 						colorCount += 2;
-					if ((_vertexType & Vertex::DATA::COLOR4) == Vertex::DATA::COLOR4)
+					if ((_vertexType & Vertex::VERTEXTYPE::COLOR3) == Vertex::VERTEXTYPE::COLOR3)
+						colorCount += 3;
+					if ((_vertexType & Vertex::VERTEXTYPE::COLOR4) == Vertex::VERTEXTYPE::COLOR4)
 						colorCount += 4;
 
 					memcpy((void*)((size_t)_data3D.meshes[iMesh].vertexData + vertOffset), &scene->mMeshes[iMesh]->mColors[0][iVert].r, sizeof(float) * colorCount);
 					vertOffset += sizeof(float) * colorCount;
 				}
+				// BONE32
+				if (((_vertexType & Vertex::VERTEXTYPE::BONE16_1) == Vertex::VERTEXTYPE::BONE16_1) ||
+					((_vertexType & Vertex::VERTEXTYPE::BONE16_2) == Vertex::VERTEXTYPE::BONE16_2) ||
+					((_vertexType & Vertex::VERTEXTYPE::BONE16_3) == Vertex::VERTEXTYPE::BONE16_3) ||
+					((_vertexType & Vertex::VERTEXTYPE::BONE16_4) == Vertex::VERTEXTYPE::BONE16_4))
+				{
+					uint8_t boneCount = 0;
+					if ((_vertexType & Vertex::VERTEXTYPE::BONE16_1) == Vertex::VERTEXTYPE::BONE16_1)
+						boneCount += 1;
+					if ((_vertexType & Vertex::VERTEXTYPE::BONE16_2) == Vertex::VERTEXTYPE::BONE16_2)
+						boneCount += 2;
+					if ((_vertexType & Vertex::VERTEXTYPE::BONE16_3) == Vertex::VERTEXTYPE::BONE16_3)
+						boneCount += 3;
+					if ((_vertexType & Vertex::VERTEXTYPE::BONE16_4) == Vertex::VERTEXTYPE::BONE16_4)
+						boneCount += 4;
+
+					memset((void*)((size_t)_data3D.meshes[iMesh].vertexData + vertOffset), 0, (sizeof(float) + sizeof(uint16_t)) * boneCount);
+					vertOffset += (sizeof(float) + sizeof(uint16_t)) * boneCount;
+				}
 			}
 
-			size_t weightCount = Vertex::BONE16::GetVertexBoneCount(_data3D.meshes[iMesh].vertexType);
+			size_t weightCount = Vertex::VERTEXTYPE::GetBoneCount(_data3D.meshes[iMesh].vertexType);
 			if (weightCount > 0)
 			{
 				for (unsigned int iBone = 0; iBone != scene->mMeshes[iMesh]->mNumBones; ++iBone)

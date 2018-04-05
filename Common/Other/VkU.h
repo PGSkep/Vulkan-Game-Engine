@@ -193,15 +193,16 @@ namespace VkU
 	}
 
 	// Vertex.h struct dependent
-	inline std::vector<VkVertexInputAttributeDescription> GetVertexInputAttributeDescriptions(std::vector<Vertex::DATA::type> _datatypes)
+	inline std::vector<VkVertexInputAttributeDescription> GetVertexInputAttributeDescriptions(std::vector<Vertex::VERTEXTYPE::vertextype> _datatypes)
 	{
 		std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions;
 		VkVertexInputAttributeDescription vertexInputAttributeDescription;
+		uint32_t location = 0;
 		for (uint32_t i = 0; i != (uint32_t)_datatypes.size(); ++i)
 		{
-			uint32_t location = 0;
 			uint32_t offset = 0;
-			if ((_datatypes[i] & Vertex::DATA::POS3) == Vertex::DATA::POS3)
+			// POS
+			if ((_datatypes[i] & Vertex::VERTEXTYPE::POS3) == Vertex::VERTEXTYPE::POS3)
 			{
 				vertexInputAttributeDescription.location = location;
 				vertexInputAttributeDescription.binding = i;
@@ -212,7 +213,9 @@ namespace VkU
 				offset += sizeof(float) * 3;
 				vertexInputAttributeDescriptions.push_back(vertexInputAttributeDescription);
 			}
-			if ((_datatypes[i] & Vertex::DATA::UV) == Vertex::DATA::UV)
+
+			// OTH
+			if ((_datatypes[i] & Vertex::VERTEXTYPE::UV) == Vertex::VERTEXTYPE::UV)
 			{
 				vertexInputAttributeDescription.location = location;
 				vertexInputAttributeDescription.binding = i;
@@ -223,7 +226,7 @@ namespace VkU
 				offset += sizeof(float) * 2;
 				vertexInputAttributeDescriptions.push_back(vertexInputAttributeDescription);
 			}
-			if ((_datatypes[i] & Vertex::DATA::NORMAL) == Vertex::DATA::NORMAL)
+			if ((_datatypes[i] & Vertex::VERTEXTYPE::NORMAL) == Vertex::VERTEXTYPE::NORMAL)
 			{
 				vertexInputAttributeDescription.location = location;
 				vertexInputAttributeDescription.binding = i;
@@ -234,7 +237,7 @@ namespace VkU
 				offset += sizeof(float) * 3;
 				vertexInputAttributeDescriptions.push_back(vertexInputAttributeDescription);
 			}
-			if ((_datatypes[i] & Vertex::DATA::TANGENT) == Vertex::DATA::TANGENT)
+			if ((_datatypes[i] & Vertex::VERTEXTYPE::TANGENT) == Vertex::VERTEXTYPE::TANGENT)
 			{
 				vertexInputAttributeDescription.location = location;
 				vertexInputAttributeDescription.binding = i;
@@ -245,7 +248,7 @@ namespace VkU
 				offset += sizeof(float) * 3;
 				vertexInputAttributeDescriptions.push_back(vertexInputAttributeDescription);
 			}
-			if ((_datatypes[i] & Vertex::DATA::BITANGENT) == Vertex::DATA::BITANGENT)
+			if ((_datatypes[i] & Vertex::VERTEXTYPE::BITANGENT) == Vertex::VERTEXTYPE::BITANGENT)
 			{
 				vertexInputAttributeDescription.location = location;
 				vertexInputAttributeDescription.binding = i;
@@ -256,7 +259,55 @@ namespace VkU
 				offset += sizeof(float) * 3;
 				vertexInputAttributeDescriptions.push_back(vertexInputAttributeDescription);
 			}
-			size_t boneCount = Vertex::BONE16::GetVertexBoneCount(_datatypes[i]);
+
+			// COL
+			if ((_datatypes[i] & Vertex::VERTEXTYPE::COLOR1) == Vertex::VERTEXTYPE::COLOR1)
+			{
+				vertexInputAttributeDescription.location = location;
+				vertexInputAttributeDescription.binding = i;
+				vertexInputAttributeDescription.format = VK_FORMAT_R32_SFLOAT;
+				vertexInputAttributeDescription.offset = offset;
+
+				++location;
+				offset += sizeof(float) * 3;
+				vertexInputAttributeDescriptions.push_back(vertexInputAttributeDescription);
+			}
+			else if ((_datatypes[i] & Vertex::VERTEXTYPE::COLOR2) == Vertex::VERTEXTYPE::COLOR2)
+			{
+				vertexInputAttributeDescription.location = location;
+				vertexInputAttributeDescription.binding = i;
+				vertexInputAttributeDescription.format = VK_FORMAT_R32G32_SFLOAT;
+				vertexInputAttributeDescription.offset = offset;
+
+				++location;
+				offset += sizeof(float) * 3;
+				vertexInputAttributeDescriptions.push_back(vertexInputAttributeDescription);
+			}
+			else if ((_datatypes[i] & Vertex::VERTEXTYPE::COLOR3) == Vertex::VERTEXTYPE::COLOR3)
+			{
+				vertexInputAttributeDescription.location = location;
+				vertexInputAttributeDescription.binding = i;
+				vertexInputAttributeDescription.format = VK_FORMAT_R32G32B32_SFLOAT;
+				vertexInputAttributeDescription.offset = offset;
+
+				++location;
+				offset += sizeof(float) * 3;
+				vertexInputAttributeDescriptions.push_back(vertexInputAttributeDescription);
+			}
+			else if ((_datatypes[i] & Vertex::VERTEXTYPE::COLOR4) == Vertex::VERTEXTYPE::COLOR4)
+			{
+				vertexInputAttributeDescription.location = location;
+				vertexInputAttributeDescription.binding = i;
+				vertexInputAttributeDescription.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+				vertexInputAttributeDescription.offset = offset;
+
+				++location;
+				offset += sizeof(float) * 3;
+				vertexInputAttributeDescriptions.push_back(vertexInputAttributeDescription);
+			}
+
+			// BONE
+			size_t boneCount = Vertex::VERTEXTYPE::GetBoneCount(_datatypes[i]);
 			if (boneCount != 0)
 			{
 				// bone index
@@ -347,11 +398,46 @@ namespace VkU
 					vertexInputAttributeDescriptions.push_back(vertexInputAttributeDescription);
 				}
 			}
-			if ((_datatypes[i] & Vertex::DATA::COLOR3) == Vertex::DATA::COLOR3)
+			
+			// INSTANCE
+			if ((_datatypes[i] & Vertex::VERTEXTYPE::ROT3) == Vertex::VERTEXTYPE::ROT3)
 			{
 				vertexInputAttributeDescription.location = location;
 				vertexInputAttributeDescription.binding = i;
 				vertexInputAttributeDescription.format = VK_FORMAT_R32G32B32_SFLOAT;
+				vertexInputAttributeDescription.offset = offset;
+
+				++location;
+				offset += sizeof(float) * 3;
+				vertexInputAttributeDescriptions.push_back(vertexInputAttributeDescription);
+			}
+			if ((_datatypes[i] & Vertex::VERTEXTYPE::SCALE3) == Vertex::VERTEXTYPE::SCALE3)
+			{
+				vertexInputAttributeDescription.location = location;
+				vertexInputAttributeDescription.binding = i;
+				vertexInputAttributeDescription.format = VK_FORMAT_R32G32B32_SFLOAT;
+				vertexInputAttributeDescription.offset = offset;
+
+				++location;
+				offset += sizeof(float) * 3;
+				vertexInputAttributeDescriptions.push_back(vertexInputAttributeDescription);
+			}
+			if ((_datatypes[i] & Vertex::VERTEXTYPE::LIGHTCOUNT) == Vertex::VERTEXTYPE::LIGHTCOUNT)
+			{
+				vertexInputAttributeDescription.location = location;
+				vertexInputAttributeDescription.binding = i;
+				vertexInputAttributeDescription.format = VK_FORMAT_R16_UINT;
+				vertexInputAttributeDescription.offset = offset;
+
+				++location;
+				offset += sizeof(float) * 3;
+				vertexInputAttributeDescriptions.push_back(vertexInputAttributeDescription);
+			}
+			if ((_datatypes[i] & Vertex::VERTEXTYPE::BONECOUNT) == Vertex::VERTEXTYPE::BONECOUNT)
+			{
+				vertexInputAttributeDescription.location = location;
+				vertexInputAttributeDescription.binding = i;
+				vertexInputAttributeDescription.format = VK_FORMAT_R16_UINT;
 				vertexInputAttributeDescription.offset = offset;
 
 				++location;
@@ -364,11 +450,11 @@ namespace VkU
 	}
 	struct BindingDescriptionInfo
 	{
-		uint32_t			binding;
-		Vertex::DATA::type	dataType;
-		VkVertexInputRate	inputRate;
+		uint32_t						binding;
+		Vertex::VERTEXTYPE::vertextype	dataType;
+		VkVertexInputRate				inputRate;
 
-		static inline BindingDescriptionInfo Get(uint32_t _binding, Vertex::DATA::type _dataType, VkVertexInputRate _inputRate)
+		static inline BindingDescriptionInfo Get(uint32_t _binding, Vertex::VERTEXTYPE::vertextype _dataType, VkVertexInputRate _inputRate)
 		{
 			BindingDescriptionInfo bindingDescriptionInfo;
 			bindingDescriptionInfo.binding = _binding;
@@ -384,7 +470,7 @@ namespace VkU
 		for (uint32_t i = 0; i != (uint32_t)_info.size(); ++i)
 		{
 			vertexInputBindingDescription.binding = _info[i].binding;
-			vertexInputBindingDescription.stride = (uint32_t)Vertex::GetDatatypeStride(_info[i].dataType);
+			vertexInputBindingDescription.stride = (uint32_t)Vertex::VERTEXTYPE::GetStride(_info[i].dataType);
 			vertexInputBindingDescription.inputRate = _info[i].inputRate;
 
 			vertexInputBindingDescriptions.push_back(vertexInputBindingDescription);

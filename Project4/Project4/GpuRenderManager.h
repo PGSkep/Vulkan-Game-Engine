@@ -68,8 +68,6 @@ public:
 	};
 	std::map<std::string, StaticMeshPipeline> staticMeshPipelines;
 
-
-
 	//void RecordUi();
 	//void RecordParticle();
 	void RecordStaticMeshes(VkCommandBuffer _commandBuffer, GpuPipelineManager* _pipelineManager, GpuDescriptorManager* _descriptorManager, GpuMemoryManager* _gpuMemoryManager)
@@ -89,10 +87,12 @@ public:
 				GpuMemoryManager::VerticeBufferInfo vertexPosition = _gpuMemoryManager->GetVerticeBufferInfo(iterMesh->second.vertexPosition.c_str());
 				GpuMemoryManager::VerticeBufferInfo vertexOther = _gpuMemoryManager->GetVerticeBufferInfo(iterMesh->second.vertexOther.c_str());
 
-				//VkBuffer vertexBuffers[] = { vertexInstance.buffer, vertexPosition.buffer, vertexOther.buffer };
-				//VkDeviceSize vertexOffsets[] = { vertexInstance.offset, vertexPosition.offset, vertexOther.offset };
-				VkBuffer vertexBuffers[] = { vertexOther.buffer };
-				VkDeviceSize vertexOffsets[] = { vertexOther.offset };
+				VkBuffer vertexBuffers[] = { vertexInstance.buffer, vertexPosition.buffer, vertexOther.buffer };
+				VkDeviceSize vertexOffsets[] = { vertexInstance.offset, vertexPosition.offset, vertexOther.offset };
+
+				//VkBuffer vertexBuffers[] = { vertexPosition.buffer, vertexOther.buffer };
+				//VkDeviceSize vertexOffsets[] = { vertexPosition.offset, vertexOther.offset };
+
 				vkCmdBindVertexBuffers(_commandBuffer, 0, sizeof(vertexBuffers) / sizeof(VkBuffer), vertexBuffers, vertexOffsets);
 
 				GpuMemoryManager::IndiceBufferInfo index = _gpuMemoryManager->GetIndiceBufferInfo(iterMesh->second.indice.c_str());

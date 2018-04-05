@@ -90,6 +90,8 @@ size_t MemoryMap<Userdata>::Allocate(const char* _name, size_t _size, Userdata _
 				target = curr;
 				break;
 			}
+			else
+				curr = curr->next;
 		}
 		else
 			curr = curr->next;
